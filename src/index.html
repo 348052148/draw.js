@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Draw.js图形引擎</title>
+    <script src="js/core.js"></script>
+    <script src="js/draw.js"></script>
+</head>
+<body>
+    <h2>Draw.js图形引擎DEMO</h2>
+    <div style="float: left;" id="canvas">
+
+    </div>
+    <div style="float: left;">
+        <ul>
+            <li><button onclick="demo01()">正方形弹射</button></li>
+            <li><button onclick="demo02()">2000正方形弹射</button></li>
+            <li><button onclick="demo03()">资源管理器及进度条</button></li>
+            <li><button onclick="demo04()">绘制图片</button></li>
+            <li><button onclick="demo05()">BTrajectory</button></li>
+            <li><button onclick="demo06()">刷新场景</button></li>
+            <li><button onclick="demo07()">停止场景</button></li>
+            <li><button onclick="demo08()">开始场景</button></li>
+            <li><button onclick="demo09()">toDataURL</button></li>
+            <li><button onclick="demo10()">Animate</button></li>
+        </ul>
+    </div>
+    <div style="float: left;">
+        <input id="content" type="text" />
+        <button onclick="scene.sendMessage()">发送</button>
+    </div>
+
+</body>
+<script>
+
+    BGame.createWindow(0,0,1200,700,'1px solid #eee',document.getElementById('canvas'));
+    BGame.init();
+    var director= new BDirector();
+    director.init(BGame);
+    var sceneLayer1 =new BScene();
+    var sceneLayer2 = new BScene();
+    var sceneLayer3 = new BScene();
+    var sceneLayer4 = new BScene();
+    var sceneLayer5 = new BScene();
+    var sceneLayer6 = new BScene();
+
+    BGame.BContext.lineCap="round";
+    BGame.BContext.lineJoin="round";
+    BGame.BContext.lineWidth=10;
+
+    director.addScene(sceneLayer1);
+    director.addScene(sceneLayer2);
+    director.addScene(sceneLayer3);
+    director.addScene(sceneLayer4);
+    director.addScene(sceneLayer5);
+    director.addScene(sceneLayer6);
+//    director.switchScene(sceneLayer1);
+
+
+
+    var textSprite=new BTextSprite();
+    //
+    textSprite.setText({
+        text:'Hello world!',
+        font:'20px Arial',
+        align:'start'
+    });
+    textSprite.height = 20;
+
+    //    textSprite.runAction(new bollMove(3,3));
+    textSprite.runAction(new BRotate());
+
+    //        textSprite.scale(0.5,0.5);
+
+    textSprite.setPos({x:600,y:600});
+
+    textSprite.translate(20,0);
+
+    textSprite.draw=function(){
+        this.transform();
+        this.Paint.font('20px Arial');
+        if(this.tobj.align!= undefined && this.tobj.align!=null)
+            this.Paint.textAlign(this.tobj.align);
+        if(this.tobj.style=='stroke'){
+            this.Paint.strokeText(this.tobj.text,this.x(),this.y(),this.maxWidth);
+        }else{
+            this.Paint.fillText('FPS:'+BGame.fps,this.x(),this.y(),this.maxWidth);
+        }
+    };
+
+    var rectSprite1 = new BSprite(100,100);
+
+    rectSprite1.draw = function () {
+        this.transform();
+        this.Paint.fillRect(this.x(),this.y(),100,100);
+    };
+
+    rectSprite1.setCorePos(0.5);
+    console.log(rectSprite1.coreOffsetY);
+    //    rectSprite1.setPos({x:150,y:100});
+
+    rectSprite1.setPos({x:100,y:100});
+    //    rectSprite1.setPos({x:300,y:100});
+
+    console.log(rectSprite1.x());
+
+    console.log(rectSprite1.posX);
+
+    //    rectSprite1.setPosition({x:200,y:250});
+
+    rectSprite1.runAction(new bollMove(4,4));
+
+
+
+    sceneLayer1.addChild(rectSprite1);
+
+
+    sceneLayer1.addChild(textSprite);
+
+
+
+
+
+    for(var i=0;i<2000;i++){
+        var p1 = new BSprite(10,10);
+        p1.i = i;
+        p1.draw = function () {
+            this.transform();
+            var r = parseInt(Math.random()*255);
+            var g = parseInt(Math.random()*255);
+            var b = parseInt(Math.random()*255);
+            BGame.BContext.fillStyle =" rgb("+r+","+g+","+b+")";
+            this.Paint.fillRect(this.x(),this.y(),10,10);
+        };
+        p1.setCorePos(0.5);
+
+//    rectSprite.translate(100,0);
+
+        p1.scale(0.5,0.5);
+
+        p1.setPos({x:100,y:100});
+
+        var bx = parseInt(Math.random()*100);
+
+        var by = parseInt(Math.random()*100);
+
+        if(by > 10){
+            by = -parseInt(by /10);
+        }
+        if(bx > 10){
+            bx = -parseInt(bx /10);
+        }
+
+        p1.runAction(new bollMove(bx,by));
+
+        sceneLayer2.addChild(p1);
+
+    }
+
+
+
+
+
+
+    //todo 进度条
+    var progressBar = new BProgressBar();
+    progressBar.setWidth(BGame.width-200);
+    progressBar.setHeight(10);
+    progressBar.setPosition({x:100+(BGame.width-200)/2,y:BGame.height/2});
+    sceneLayer3.addChild(progressBar);
+
+    progressBar.setCorePos(0.5);
+    progressBar.runAction(new BRotate(0.01));
+
+    var explorer = new BExplorer(director);
+    explorer.loadImages({
+        PaperBoy2: "http://img.taopic.com/uploads/allimg/140322/235058-1403220K93993.jpg",
+        PaperBoy3: "http://img.taopic.com/uploads/allimg/140320/235006-140320195A921.jpg",
+        PaperBoy4: "http://pic18.nipic.com/20111206/2256974_131330799000_2.jpg",
+        PaperBoy100: "image/forward.png"
+
+    },function (loadedImages,numImages) { //加载中回调
+        progressBar.setLength(numImages);
+        progressBar.setVal(loadedImages);
+    },function () { //加载完成回调
+
+        //动画
+        var animateSprite = new BSprite(200,200);
+        var banimate = new BAnimate(200);
+        banimate.splitImage(8,explorer.IMG['PaperBoy100']);
+        animateSprite.setPos({x:200,y:200});
+        animateSprite.runAction(banimate);
+        sceneLayer6.addChild(animateSprite);
+
+    });
+
+
+
+
+    var bimageSprite = new BImageSprite();
+
+    bimageSprite.setImageData(explorer.IMG['PaperBoy3']);
+
+
+    bimageSprite.scale(0.1,0.1);
+
+    bimageSprite.setCorePos(0.5);
+
+    bimageSprite.setPos({x:100,y:100});
+
+    bimageSprite.runAction(new BMoveTo(700,500,2));
+
+    sceneLayer4.addChild(bimageSprite);
+
+
+
+
+//    sceneLayer.setPosition({x:100,y:100});
+
+    var rectSprite = new BSprite(100,100);
+    rectSprite.draw = function () {
+        this.transform();
+        this.Paint.fillRect(this.x(),this.y(),100,100);
+    };
+
+    rectSprite.setCorePos(0.5);
+
+    rectSprite.scale(0.5,0.5);
+
+    rectSprite.setPos({x:100,y:100});
+
+    console.log('realX'+rectSprite.realX()+"realY"+rectSprite.realY());
+
+    console.log("x"+rectSprite.x()+"y"+rectSprite.y());
+
+    console.log("posx"+rectSprite.posX+"posy"+rectSprite.posY);
+
+    rectSprite.setPos({x:200,y:50});
+
+    var tr = new BTrajectory();
+    tr.join(800,600,2);
+//    tr.join(100,400,8).join(400,100,4).join(400,400,2).join(600,200,2);
+    for(i =0;i < 100;i++){
+        tr.join(parseInt(Math.random()*800),parseInt(Math.random()*600),parseInt(Math.random()*8));
+    }
+    rectSprite.runAction(tr);
+
+    sceneLayer5.addChild(rectSprite);
+    for(var j=0;j<20;j++){
+        var reSprite = rectSprite.clone();
+        reSprite.scale(0.5,0.5);
+        reSprite.setCorePos(0.5);
+        var tr1 = new BTrajectory();
+        tr1.join(800,600,2);
+        //    tr.join(100,400,8).join(400,100,4).join(400,400,2).join(600,200,2);
+        for(i =0;i < 100;i++){
+            tr1.join(parseInt(Math.random()*BGame.width),parseInt(Math.random()*BGame.height),parseInt(Math.random()*8));
+        }
+        reSprite.runAction(tr1);
+        sceneLayer5.addChild(reSprite);
+    }
+
+
+
+    rectSprite1.setZindex(10);
+
+    director.run();
+
+    
+    
+
+    function demo01() {
+        director.switchScene(sceneLayer1);
+    }
+
+    function demo02() {
+        director.switchScene(sceneLayer2);
+    }
+
+    function demo03() {
+        director.switchScene(sceneLayer3);
+    }
+
+    function demo04() {
+        director.switchScene(sceneLayer4);
+    }
+
+    function demo05() {
+        director.switchScene(sceneLayer5);
+    }
+    
+    function demo06() {
+        director.flushScene();
+    }
+
+    function demo07() {
+        director.stop();
+    }
+
+    function demo08() {
+        director.run();
+    }
+
+    function demo09() {
+        alert(BGame.toDataURL());
+    }
+
+    function demo10() {
+        director.switchScene(sceneLayer6);
+    }
+
+
+
+
+
+
+
+    var socketClient = new SocketClient();
+
+    socketClient.setServerOption({ip:'localhost',port:8181});
+
+    var scene = new NQScene(socketClient);
+
+    scene.run(function (event,wsocket) {
+
+        var messageInfo = GameUtils.parseMessage(event.data);
+
+        if(messageInfo['head']['type'] == GameUtils.TYPE.CHAT){
+//            console.log(messageInfo);
+//            document.getElementById('canvas').innerHTML = document.getElementById('canvas').innerHTML+messageInfo['head']['fromid']+":"+messageInfo['body']['content']+"</br>";
+
+            var textSprite=new BTextSprite();
+
+            textSprite.posX=100;
+            textSprite.posY=100;
+            textSprite.setText({
+                text:messageInfo['body']['content'],
+                font:'20px Arial',
+                align:'start'
+            });
+            textSprite.height = 20;
+
+            textSprite.runAction(new bollMove(parseInt(Math.random()*10),parseInt(Math.random()*10)));
+
+            sceneLayer.addChild(textSprite);
+        }
+
+    });
+
+    scene.sendMessage=function() {
+        socketClient.send(document.getElementById('content').value);
+    }
+
+//    gameQueue.sendMessage("1:send position:end");
+</script>
+</html>
