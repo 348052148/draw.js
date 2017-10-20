@@ -252,6 +252,13 @@ var BUtils={
             {x:x+width,y:y}
         ];
         return ploye;
+    },
+    polygonPos:function (position_arr) {
+        ploye = [];
+        for (pos in position_arr){
+            ploye.push({x:pos[0],y:pos[1]});
+        }
+        return ploye;
     }
 };
 //-------------------全局对象。一个游戏之一一个Game
@@ -306,6 +313,7 @@ var BGame={
 
             for(var eventinfo in that.eventLoop){
                 event = that.eventLoop[eventinfo];
+                if(event.event != 'mousedown') continue;
                 var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
                 if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
                     event.func(e,event.obj);
@@ -319,6 +327,7 @@ var BGame={
             // alert('鼠标按起');
             for(var eventinfo in that.eventLoop){
                 event = that.eventLoop[eventinfo];
+                if(event.event != 'mouseup') continue;
                 var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
                 if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
                     event.func(e);
@@ -326,6 +335,44 @@ var BGame={
             }
 
         });
+
+        this.canvasObj.addEventListener('mouseover',function (e) {
+            //鼠标离开事件
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                if(event.event != 'mouseover') continue;
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e);
+                }
+            }
+        });
+
+        this.canvasObj.addEventListener('mousemove',function (e) {
+            //鼠标进入事件
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                if(event.event != 'mousemove') continue;
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e);
+                }
+            }
+        });
+
+        this.canvasObj.addEventListener('mouseout',function (e) {
+            //鼠标离开事件
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                if(event.event != 'mouseout') continue;
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e);
+                }
+            }
+        });
+
+
     },
 
     createWindow:function(x,y,w,h,borderStyle,ele,fps){
@@ -660,19 +707,33 @@ function BMove(){
     this.actions=function(){
         if(!this.isActionActive) return false;
         if(this.acObj!=undefined && this.acObj!=null){
-            for(var i =0;i<this.acObj.length;i++){
-                if(this.acObj[i].isActive){
-                    this.acObj[i].executed(this);
-                    this.acObj[i].draw(this);
+            for(uid in this.acObj){
+                if(this.acObj[uid].isActive){
+                    this.acObj[uid].executed(this);
+                    this.acObj[uid].draw(this);
                 }
             }
         }
     };
     this.runAction=function(action){
-        this.acObj.push(action);
+        if(!this.acObj[action.UUID]){
+
+            this.acObj[action.UUID] = action;
+        }
+        action.isActive = true;
+
     };
 
-    this.stopAction=function(){
+    this.stopAction = function (action) {
+        action.isActive = false;
+    };
+
+    //移除
+    this.removeAction = function (action) {
+        
+    };
+
+    this.stopALLAction=function(){
         this.isActionActive = false;
     }
 }

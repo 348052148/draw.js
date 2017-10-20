@@ -110,8 +110,9 @@
     console.log(rectSprite1.posX);
 
     //    rectSprite1.setPosition({x:200,y:250});
+    var box = new bollMove(4,4);
 
-//    rectSprite1.runAction(new bollMove(4,4));
+    rectSprite1.runAction(box);
 
 
 
@@ -120,8 +121,23 @@
 
     sceneLayer1.addChild(textSprite);
 
-    rectSprite1.on('click',function () {
-        alert('触发事件');
+    rectSprite1.isMove = false;
+
+    rectSprite1.on('mousedown',function () {
+        rectSprite1.isMove = true;
+        rectSprite1.stopAction(box)
+
+    });
+
+    rectSprite1.on('mouseup',function () {
+        rectSprite1.isMove = false;
+
+    });
+
+    sceneLayer1.on('mousemove',function (e) {
+        if(rectSprite1.isMove){
+            rectSprite1.setPos({x:e.offsetX,y:e.offsetY});
+        }
 
     });
 
@@ -198,6 +214,7 @@
         banimate.splitImage(8,explorer.IMG['PaperBoy100']);
         animateSprite.setPos({x:200,y:200});
         animateSprite.runAction(banimate);
+        animateSprite.runAction(new BMoveTo(600,200,1));
         sceneLayer6.addChild(animateSprite);
 
     });
