@@ -23,6 +23,7 @@
             <li><button onclick="demo08()">开始场景</button></li>
             <li><button onclick="demo09()">toDataURL</button></li>
             <li><button onclick="demo10()">Animate</button></li>
+            <li><button onclick="demo11()">Event</button></li>
         </ul>
     </div>
     <div style="float: left;">
@@ -43,6 +44,7 @@
     var sceneLayer4 = new BScene();
     var sceneLayer5 = new BScene();
     var sceneLayer6 = new BScene();
+    var sceneLayer7 = new BScene();
 
     BGame.BContext.lineCap="round";
     BGame.BContext.lineJoin="round";
@@ -54,6 +56,7 @@
     director.addScene(sceneLayer4);
     director.addScene(sceneLayer5);
     director.addScene(sceneLayer6);
+    director.addScene(sceneLayer7);
 //    director.switchScene(sceneLayer1);
 
 
@@ -108,7 +111,7 @@
 
     //    rectSprite1.setPosition({x:200,y:250});
 
-    rectSprite1.runAction(new bollMove(4,4));
+//    rectSprite1.runAction(new bollMove(4,4));
 
 
 
@@ -116,6 +119,11 @@
 
 
     sceneLayer1.addChild(textSprite);
+
+    rectSprite1.on('click',function () {
+        alert('触发事件');
+
+    });
 
 
 
@@ -309,48 +317,8 @@
         director.switchScene(sceneLayer6);
     }
 
-
-
-
-
-
-
-    var socketClient = new SocketClient();
-
-    socketClient.setServerOption({ip:'localhost',port:8181});
-
-    var scene = new NQScene(socketClient);
-
-    scene.run(function (event,wsocket) {
-
-        var messageInfo = GameUtils.parseMessage(event.data);
-
-        if(messageInfo['head']['type'] == GameUtils.TYPE.CHAT){
-//            console.log(messageInfo);
-//            document.getElementById('canvas').innerHTML = document.getElementById('canvas').innerHTML+messageInfo['head']['fromid']+":"+messageInfo['body']['content']+"</br>";
-
-            var textSprite=new BTextSprite();
-
-            textSprite.posX=100;
-            textSprite.posY=100;
-            textSprite.setText({
-                text:messageInfo['body']['content'],
-                font:'20px Arial',
-                align:'start'
-            });
-            textSprite.height = 20;
-
-            textSprite.runAction(new bollMove(parseInt(Math.random()*10),parseInt(Math.random()*10)));
-
-            sceneLayer.addChild(textSprite);
-        }
-
-    });
-
-    scene.sendMessage=function() {
-        socketClient.send(document.getElementById('content').value);
+    function demo11(){
+        director.switchScene(sceneLayer7);
     }
-
-//    gameQueue.sendMessage("1:send position:end");
 </script>
 </html>

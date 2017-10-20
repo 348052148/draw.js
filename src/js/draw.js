@@ -207,6 +207,51 @@ var BUtils={
     },
     S4:function() {
         return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+    },
+    rayCasting:function(p, poly) {
+        var px = p.x,
+            py = p.y,
+            flag = false;
+
+        for(var i = 0, l = poly.length, j = l - 1; i < l; j = i, i++) {
+            var sx = poly[i].x,
+                sy = poly[i].y,
+                tx = poly[j].x,
+                ty = poly[j].y;
+
+            // 点与多边形顶点重合
+            if((sx === px && sy === py) || (tx === px && ty === py)) {
+                return 'on'
+            }
+
+            // 判断线段两端点是否在射线两侧
+            if((sy < py && ty >= py) || (sy >= py && ty < py)) {
+                // 线段上与射线 Y 坐标相同的点的 X 坐标
+                var x = sx + (py - sy) * (tx - sx) / (ty - sy);
+
+                // 点在多边形的边上
+                if(x === px) {
+                    return 'on'
+                }
+
+                // 射线穿过多边形的边界
+                if(x > px) {
+                    flag = !flag
+                }
+            }
+        }
+
+        // 射线穿过多边形边界的次数为奇数时点在多边形内
+        return flag ? 'in' : 'out';
+    },
+    rectPos:function (x,y,width,height) {
+        var ploye = [
+            {x:x,y:y},
+            {x:x,y:y+height},
+            {x:x+width,y:y+height},
+            {x:x+width,y:y}
+        ];
+        return ploye;
     }
 };
 //-------------------全局对象。一个游戏之一一个Game
@@ -219,7 +264,68 @@ var BGame={
     canvasId:BUtils.uuid(),
     init:function(){
 
+        var that = this;
+
         this.BContext=document.getElementById(this.canvasId).getContext("2d");
+
+        this.canvasObj.addEventListener('click',function (e) {
+            // alert('单击');
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e);
+                }
+            }
+
+        });
+
+        this.canvasObj.addEventListener('dblclick',function (e) {
+           // alert('双击');
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e);
+                }
+            }
+
+        });
+
+        document.addEventListener('keydown',function (e) {
+            // alert('按下');
+        });
+
+        document.addEventListener('keyup',function (e) {
+           // alert('按起');
+        });
+
+        this.canvasObj.addEventListener('mousedown',function (e) {
+            // alert('鼠标按下');
+            // console.log(that.eventLoop);
+
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e,event.obj);
+                }
+            }
+
+            return false;
+        });
+
+        this.canvasObj.addEventListener('mouseup',function (e) {
+            // alert('鼠标按起');
+            for(var eventinfo in that.eventLoop){
+                event = that.eventLoop[eventinfo];
+                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    event.func(e);
+                }
+            }
+
+        });
     },
 
     createWindow:function(x,y,w,h,borderStyle,ele,fps){
@@ -249,16 +355,31 @@ var BGame={
     },
     mozFetchAsStream:function () {
         return this.canvasObj.mozFetchAsStream();
-    }
+    },
+    eventLoop: []
 };
 
 //todo 游戏引擎对象
 //--------------------------------------基础类-----------------------------------------------------
+//event
+function BEvent(){
+    BObject.call(this);
+
+    this.on = function(eventType,func){
+        BGame.eventLoop[eventType+this.UUID] = {func:func,obj:this,event:eventType};
+    };
+    
+    this.emit = function(eventType) {
+        BGame.eventLoop[eventType+this.UUID].func(BGame.eventLoop[eventType+this.UUID].obj);
+    };
+}
+
+
 //容器对象
 function BContainer(){
     BObject.call(this);
     BMove.call(this);
-    this.nodeList=new Array();
+    this.nodeList = new Array();
     this.parentNode = null;
     this.z_index = 0;
     this.addChild=function(container){
@@ -535,8 +656,9 @@ function BClone(){
 function BMove(){
     BObject.call(this);
     this.acObj= new Array();
-
+    this.isActionActive  = true;
     this.actions=function(){
+        if(!this.isActionActive) return false;
         if(this.acObj!=undefined && this.acObj!=null){
             for(var i =0;i<this.acObj.length;i++){
                 if(this.acObj[i].isActive){
@@ -549,6 +671,10 @@ function BMove(){
     this.runAction=function(action){
         this.acObj.push(action);
     };
+
+    this.stopAction=function(){
+        this.isActionActive = false;
+    }
 }
 
 //-----------------------------基本继承节点--------------------------------------------------
@@ -560,6 +686,8 @@ function BNode(){
     // BMove.call(this);
     BTransform.call(this);
     BSchedule.call(this);
+
+    BEvent.call(this);
 
     //设置中心点
     // this.corePos.x = this.width/2;
@@ -990,6 +1118,15 @@ function BRotate(speed) {
     this.executed=function(obj){
         obj.rotate(obj.angle+speed);
         if(obj.angle==1) obj.angle = 0;
+
+    }
+}
+
+function BJump(height) {
+    BAction.call(this);
+    
+    this.executed = function (obj) {
+        var dist_posX = obj.Y() - height;
 
     }
 }
