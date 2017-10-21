@@ -465,6 +465,7 @@ function BContainer(){
             //如果是活跃节点
             if(this.nodeList[i].node.isActive){
                 BGame.BContext.save();
+				this.nodeList[i].node.transform();
                 this.nodeList[i].node.draw();
                 BGame.BContext.restore();
             }
@@ -818,7 +819,6 @@ function BTextSprite(){
         this.width=this.Paint.measureText(this.tobj.text).width;
     };
     this.draw=function(){
-        this.transform();
 
         if(this.tobj.font!=undefined && this.tobj.font!=null)
             this.Paint.font(this.tobj.font);
@@ -851,7 +851,6 @@ function BImageSprite(){
         this.height=elem.height;
     };
     this.draw=function(){
-        this.transform();
 
         if(this.imgInfo.model == 'normal'){
             this.Paint.drawImage(this.imgInfo.elem,this.x(),this.y(),this.width,this.height);
