@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>太空飞行游戏</title>
+    <script src="../../src/js/draw.js"></script>
+</head>
+<body>
+    <div style="float: left; border: 1px solid #000;" id="canvas">
+
+    </div>
+</body>
+<script>
+    BGame.createWindow(0,0,1200,700,'1px solid #eee',document.getElementById('canvas'));
+    BGame.init();
+    var director= new BDirector();
+    director.init(BGame);
+
+    var startScene = new BScene();
+    var startLayer = new BLayer();
+
+    var gameScene = new BScene();
+
+    startScene.addChild(startLayer);
+
+
+
+    var progressBar = new BProgressBar();
+
+    progressBar.setWidth(BGame.width-200);
+    progressBar.setHeight(10);
+    progressBar.setPosition({x:100+(BGame.width-200)/2,y:BGame.height-20});
+
+    progressBar.setCorePos(0.5);
+
+    progressBar.setFontStyle('20px Arial');
+
+
+    progressBar.setfontColor('#456573');
+
+    progressBar.setTextColor('#456573');
+
+    startScene.addChild(progressBar);
+
+
+    var explorer = new BExplorer(director);
+    explorer.loadImages({
+        buttonBlue: "resource/PNG/UI/buttonBlue.png",
+        buttonGreen: "resource/PNG/UI/buttonGreen.png",
+        buttonRed: "resource/PNG/UI/buttonRed.png",
+        buttonYellow: "resource/PNG/UI/buttonYellow.png"
+
+    },function (loadedImages,numImages) { //加载中回调
+
+        setTimeout(function () {
+            progressBar.setLength(numImages);
+            progressBar.setVal(loadedImages);
+        },500);
+
+    },function () { //加载完成回调
+
+        //动画
+        setTimeout(function () {
+            startScene.removeChild(progressBar);
+        },1000);
+
+
+    });
+
+    //todo 游戏开始界面场景
+
+    var textSprite = new BTextSprite();
+    textSprite.setText('太空飞机大战');
+    textSprite.setFontStyle('40px Arial blue');
+    textSprite.setColor('blue');
+    textSprite.setAlign('start');
+    textSprite.setPos({x:BGame.width/2-textSprite.width*2,y:100});
+    startLayer.addChild(textSprite);
+
+    var startButton = new BImageButton();
+
+    startButton.setBackGroundImage(explorer.IMG['buttonBlue']);
+    startButton.setText('开 始 游 戏');
+    startButton.setPos({x:BGame.width/2-textSprite.width*2,y:BGame.height-300});
+    startButton.on('mousemove',function () {
+        startButton.setBackGroundImage(explorer.IMG['buttonGreen']);
+        startButton.fontSize = 18;
+    });
+    startButton.on('mouseover',function () {
+        startButton.setBackGroundImage(explorer.IMG['buttonBlue']);
+        startButton.fontSize = 14;
+    });
+
+    startButton.on('click',function () {
+        director.switchScene(gameScene);
+    });
+
+    startLayer.addChild(startButton);
+
+    //todo 进入游戏场景
+
+
+    //todo 游戏结束场景
+
+
+
+    director.addScene(startScene);
+    director.addScene(gameScene);
+    director.run();
+</script>
+</html>

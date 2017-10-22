@@ -275,6 +275,10 @@ var BGame={
 
         this.BContext=document.getElementById(this.canvasId).getContext("2d");
 
+
+        //-----------------------------事件-------------------------------------------
+
+
         this.canvasObj.addEventListener('click',function (e) {
             // alert('单击');
             for(var eventinfo in that.eventLoop){
@@ -336,37 +340,19 @@ var BGame={
 
         });
 
-        this.canvasObj.addEventListener('mouseover',function (e) {
-            //鼠标离开事件
-            for(var eventinfo in that.eventLoop){
-                event = that.eventLoop[eventinfo];
-                if(event.event != 'mouseover') continue;
-                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
-                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
-                    event.func(e);
-                }
-            }
-        });
-
         this.canvasObj.addEventListener('mousemove',function (e) {
             //鼠标进入事件
             for(var eventinfo in that.eventLoop){
                 event = that.eventLoop[eventinfo];
-                if(event.event != 'mousemove') continue;
-                var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
-                if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
-                    event.func(e);
-                }
-            }
-        });
+                if(event.event != 'mousemove' && event.event != 'mouseover') continue;
 
-        this.canvasObj.addEventListener('mouseout',function (e) {
-            //鼠标离开事件
-            for(var eventinfo in that.eventLoop){
-                event = that.eventLoop[eventinfo];
-                if(event.event != 'mouseout') continue;
                 var ploye = BUtils.rectPos(event.obj.X()+event.obj.coreOffsetX,event.obj.Y()+event.obj.coreOffsetY,event.obj.width,event.obj.height);
+
                 if(BUtils.rayCasting({x:e.offsetX,y:e.offsetY},ploye)!= 'out'){
+                    if(event.event == 'mousemove')
+                    event.func(e);
+                }else{
+                    if(event.event == 'mouseover')
                     event.func(e);
                 }
             }
@@ -775,11 +761,11 @@ function  BScene(){
 }
 function BLayer(){
     BNode.call(this);
-    this.addChild=function (c) {
-        BNode.addChild(container);
-        this.setWidth(this.parentNode.width);
-        this.setHeight(this.parentNode.height);
-    };
+    // this.addChild=function (container) {
+    //     BNode.addChild(container);
+    //     this.setWidth(this.parentNode.width);
+    //     this.setHeight(this.parentNode.height);
+    // };
     this.draw=function(){
         this.topDraw();
     };
@@ -808,17 +794,34 @@ function  BSprite(w,h){
 */
 function BTextSprite(){
     BSprite.call(this,0,0);
+
     this.maxWidth=2000;
+
+    this.color = '#000';
+
     this.tobj = {};
-    /*
-     tobj{text,align,style}
-     */
-    this.setText=function(tobj){
-        this.tobj=tobj;
+
+    //设置内容
+    this.setText=function(text){
+        this.tobj.text=text;
         this.width=this.Paint.measureText(this.tobj.text).width;
     };
+    //设置样式
+    this.setFontStyle = function(fontStyle){
+        this.tobj.font = fontStyle;
+    };
+    //设置对齐方式
+    this.setAlign = function (align) {
+        this.tobj.align = align;
+    };
+
+    this.setColor = function(color){
+        this.color = color;
+    };
+
     this.draw=function(){
-        this.transform();
+
+        this.Paint.setColor(this.color);
 
         if(this.tobj.font!=undefined && this.tobj.font!=null)
             this.Paint.font(this.tobj.font);
@@ -1232,6 +1235,16 @@ function BProgressBar() {
 
     this.totalNumber = 0;
     this.currentNumber = 0;
+    this.lineWidth = 10;
+
+    this.backColor = "#eee";
+
+    this.textColor ="#000";
+
+    this.fontColor = "#000";
+
+    this.fontStyle = {};
+
     //设置
     this.setLength = function (len) {
       this.totalNumber = len;
@@ -1241,23 +1254,86 @@ function BProgressBar() {
         this.currentNumber = num;
     };
 
+    //设置底色
+    this.setbackColor = function (color) {
+        this.backColor = color;
+    };
+    //设置前色
+    this.setfontColor = function (color) {
+        this.fontColor = color;
+    };
+
+    this.setTextColor = function (color) {
+        this.textColor =   color;
+    };
+
+    //设置进度条大小
+    this.setRound = function(width){
+        this.lineWidth = width;
+    };
+
+    this.setFontStyle = function (fontStyle) {
+        this.fontStyle = fontStyle;
+    };
+
     //绘图
     this.draw=function(){
-        this.transform();
+
         var ctx = BGame.BContext;
-        ctx.fillText('Loading:'+this.currentNumber+'/'+this.totalNumber,this.x(),this.y());
+        //设置样式
+        ctx.lineCap="round";
+        ctx.lineJoin="round";
+        ctx.lineWidth=this.lineWidth;
+        //设置字体样式
+        ctx.font = this.fontStyle;
+        ctx.fillStyle = this.textColor;
+        ctx.fillText('加 载 : '+this.currentNumber+' / '+this.totalNumber,this.x(),this.y());
         ctx.save();
-        ctx.strokeStyle='#ccc';
+        ctx.strokeStyle=this.backColor;
         ctx.beginPath();
         ctx.moveTo(this.x(),this.y()+this.height);
         ctx.lineTo(this.x()+this.width,this.y()+this.height);
         ctx.stroke();
         ctx.beginPath();
         ctx.restore();
+        ctx.strokeStyle=this.fontColor;
         ctx.moveTo(this.x(),this.y()+this.height);
         ctx.lineTo(this.currentNumber/this.totalNumber*this.width+this.x(),this.y()+this.height);
         ctx.stroke();
 
-        this.topDraw();
+        // this.topDraw();
+    };
+    
+}
+
+function BImageButton() {
+    BNode.call(this);
+
+    this.backgoundImage = {};
+
+    this.text = 'button';
+    this.fontSize = 14;
+    this.textWidth = this.Paint.measureText(this.text).width;
+
+    this.setBackGroundImage = function (image) {
+        this.backgoundImage = image;
+        this.width=image.width;
+        this.height=image.height;
+    };
+
+
+    this.setText = function(text){
+        this.text = text;
+        this.textWidth = this.Paint.measureText(text).width;
+    };
+
+
+    this.draw=function(){
+
+        this.Paint.drawImage(this.backgoundImage,this.x(),this.y(),this.width,this.height);
+        //设置按钮文字
+        this.Paint.font(this.fontSize+'px Arial');
+        this.Paint.fillText(this.text,this.x()+(this.width-this.textWidth-this.fontSize)/2,this.y()+(this.height+this.fontSize)/2);
+
     };
 }
