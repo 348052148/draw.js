@@ -80,7 +80,6 @@
     textSprite.translate(20,0);
 
     textSprite.draw=function(){
-        this.transform();
         this.Paint.font('20px Arial');
         if(this.tobj.align!= undefined && this.tobj.align!=null)
             this.Paint.textAlign(this.tobj.align);
@@ -94,7 +93,6 @@
     var rectSprite1 = new BSprite(100,100);
 
     rectSprite1.draw = function () {
-        this.transform();
         this.Paint.fillRect(this.x(),this.y(),100,100);
     };
 
@@ -149,7 +147,6 @@
         var p1 = new BSprite(10,10);
         p1.i = i;
         p1.draw = function () {
-            this.transform();
             var r = parseInt(Math.random()*255);
             var g = parseInt(Math.random()*255);
             var b = parseInt(Math.random()*255);
@@ -244,7 +241,6 @@
 
     var rectSprite = new BSprite(100,100);
     rectSprite.draw = function () {
-        this.transform();
         this.Paint.fillRect(this.x(),this.y(),100,100);
     };
 
