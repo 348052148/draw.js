@@ -48,7 +48,11 @@
         buttonBlue: "resource/PNG/UI/buttonBlue.png",
         buttonGreen: "resource/PNG/UI/buttonGreen.png",
         buttonRed: "resource/PNG/UI/buttonRed.png",
-        buttonYellow: "resource/PNG/UI/buttonYellow.png"
+        buttonYellow: "resource/PNG/UI/buttonYellow.png",
+        player:"resource/PNG/playerShip1_green.png",
+        bullet:"resource/PNG/Lasers/laserBlue02.png",
+        bullet1:"resource/PNG/Lasers/laserGreen04.png",
+        enemy1:"resource/PNG/Enemies/enemyBlack1.png"
 
     },function (loadedImages,numImages) { //加载中回调
 
@@ -65,47 +69,240 @@
         },1000);
 
 
-    });
 
-    //todo 游戏开始界面场景
+        //todo 游戏开始界面场景
 
-    var textSprite = new BTextSprite();
-    textSprite.setText('太空飞机大战');
-    textSprite.setFontStyle('40px Arial blue');
-    textSprite.setColor('blue');
-    textSprite.setAlign('start');
-    textSprite.setPos({x:BGame.width/2-textSprite.width*2,y:100});
-    startLayer.addChild(textSprite);
+        var textSprite = new BTextSprite();
+        textSprite.setText('太空飞机大战');
+        textSprite.setFontStyle('40px Arial blue');
+        textSprite.setColor('blue');
+        textSprite.setAlign('start');
+        textSprite.setPos({x:BGame.width/2-textSprite.width*2,y:100});
+        startLayer.addChild(textSprite);
 
-    var startButton = new BImageButton();
+        var startButton = new BImageButton();
 
-    startButton.setBackGroundImage(explorer.IMG['buttonBlue']);
-    startButton.setText('开 始 游 戏');
-    startButton.setPos({x:BGame.width/2-textSprite.width*2,y:BGame.height-300});
-    startButton.on('mousemove',function () {
-        startButton.setBackGroundImage(explorer.IMG['buttonGreen']);
-        startButton.fontSize = 18;
-    });
-    startButton.on('mouseover',function () {
         startButton.setBackGroundImage(explorer.IMG['buttonBlue']);
-        startButton.fontSize = 14;
+        startButton.setText('开 始 游 戏');
+        startButton.setPos({x:BGame.width/2-textSprite.width*2,y:BGame.height-300});
+        startButton.on('mousemove',function () {
+            startButton.setBackGroundImage(explorer.IMG['buttonGreen']);
+            startButton.fontSize = 16;
+        });
+        startButton.on('mouseover',function () {
+            startButton.setBackGroundImage(explorer.IMG['buttonBlue']);
+            startButton.fontSize = 14;
+        });
+
+        startButton.on('click',function () {
+            director.switchScene(gameScene);
+        });
+
+        startLayer.addChild(startButton);
+
+
+
+        //todo 进入游戏场景
+        var plane = new Plane();
+
+        plane.setImage(explorer.IMG['player']);
+
+
+        plane.setCorePos(0.5);
+
+        plane.setPos({x:BGame.width/2,y:BGame.height-plane.height/2});
+        
+
+        plane.isMove = false;
+
+        plane.on('mousedown',function (e) {
+            plane.isMove = true;
+        });
+
+        plane.on('mouseup',function () {
+            plane.isMove = false;
+
+        });
+
+        gameScene.on('mousemove',function (e) {
+            if(plane.isMove){
+                plane.setPos({x:e.offsetX,y:e.offsetY});
+            }
+
+        });
+
+
+        new Map().next(gameScene);
+
+
+        gameScene.addChild(plane);
+
+        //todo 游戏结束场景
+
     });
 
-    startButton.on('click',function () {
-        director.switchScene(gameScene);
-    });
-
-    startLayer.addChild(startButton);
-
-    //todo 进入游戏场景
 
 
-    //todo 游戏结束场景
-
-
-
-    director.addScene(startScene);
     director.addScene(gameScene);
+    director.addScene(startScene);
+
     director.run();
+    
+    
+    
+    function Plane() {
+        BSprite.call(this);
+
+        this.speed = 200;
+
+        this.iamgeElem = null;
+
+        this.bulletInfo = new BulletInfo(explorer.IMG['bullet'],60);
+
+        this.setImage = function (image) {
+            this.width = image.width;
+            this.height = image.height;
+            this.iamgeElem = image;
+        };
+
+        this.loadBullet = function(bulletInfo){
+
+            this.bulletInfo = bulletInfo;
+        };
+
+        this.draw = function(){
+            this.Paint.drawImage(this.iamgeElem,this.x(),this.y(),this.width,this.height);
+
+        };
+
+        var bulletLst = new Array();
+
+        for(var i=0;i<20;i++){
+            var b = new Bullet();
+
+            bulletLst.push(b);
+            gameScene.addChild(b);
+        }
+
+        var that = this;
+
+        //todo 发射子弹
+        this.schedule(function () {
+            var b = bulletLst.shift();
+            b.setImage(that.bulletInfo.bulletElem);
+            b.setCorePos(0.5);
+            b.removeALLAction();
+            b.isActive = true;
+            b.setPos({x:that.X(),y:that.Y()});
+
+            b.runAction(new sheAction());
+
+            bulletLst.push(b);
+
+        },this.speed);
+    }
+
+    function sheAction() {
+        BAction.call(this);
+        this.executed =function(obj){
+            obj.setPos({x:obj.X(),y:obj.Y()-10});
+        }
+    }
+
+    //todo 子弹类
+    function Bullet() {
+        BSprite.call(this);
+
+        this.iamgeElem = null;
+
+        this.setImage = function (image) {
+            this.width = image.width;
+            this.height = image.height;
+            this.iamgeElem = image;
+        };
+
+        this.isActive = false;
+
+        this.draw = function(){
+            this.Paint.drawImage(this.iamgeElem,this.x(),this.y(),this.width,this.height);
+        };
+
+    }
+
+    //todo 子弹属性类
+    function BulletInfo(bulletElem,speed) {
+
+        this.bulletElem = bulletElem;
+
+        this.speed = speed;
+    }
+    
+    //todo 敌机
+    function Enemy() {
+
+        BSprite.call(this);
+
+        this.life = 1;
+
+        this.iamgeElem = null;
+
+        this.setImage = function (image) {
+            this.iamgeElem = image;
+            this.width = image.width;
+            this.height = image.height;
+        };
+
+        this.draw = function(){
+            this.Paint.drawImage(this.iamgeElem,this.x(),this.y(),this.width,this.height);
+        };
+    }
+    
+    function Map() {
+
+        this.next = function (gameScene) {
+            for(var k=0;k<20;k++){
+                var enemy = new Enemy();
+
+                enemy.setImage(explorer.IMG['enemy1']);
+
+                enemy.setCorePos(0.5);
+
+                enemy.setPos({x:0,y:0});
+
+                var tr1 = new BTrajectory();
+                var lu = [{x:100,y:100},{x:150,y:150},{x:150,y:200},{x:100,y:300},{x:200,y:400},{x:0,y:500},{x:enemy.width,y:900}];
+
+                for(var i=0;i<lu.length;i++){
+                    tr1.join(lu[i].x+enemy.width*k,lu[i].y,4);
+                }
+                enemy.runAction(tr1);
+
+                gameScene.addChild(enemy);
+            }
+        };
+
+        this.next1 = function (gameScene) {
+            for(var k=0;k<20;k++){
+                var enemy = new Enemy();
+
+                enemy.setImage(explorer.IMG['enemy1']);
+
+                enemy.setCorePos(0.5);
+
+                enemy.setPos({x:0,y:0});
+
+                var tr1 = new BTrajectory();
+                var lu = [{x:400,y:100},{x:300,y:150},{x:200,y:200},{x:100,y:300},{x:200,y:400},{x:400,y:500},{x:enemy.width,y:900}];
+
+                for(var i=0;i<lu.length;i++){
+                    tr1.join(lu[i].x+enemy.width*k,lu[i].y,2);
+                }
+                enemy.runAction(tr1);
+
+                gameScene.addChild(enemy);
+            }
+        }
+    }
+
 </script>
 </html>

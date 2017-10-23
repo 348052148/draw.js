@@ -715,6 +715,10 @@ function BMove(){
         action.isActive = false;
     };
 
+    this.removeALLAction = function(){
+        this.acObj = [];
+    };
+
     //移除
     this.removeAction = function (action) {
         
@@ -990,6 +994,13 @@ function BSchedule(){
         },time),sid:sid});
         return sid;
     };
+
+    this.stopAllSchedule = function () {
+        for(var i=0;i<this.scheduleList.length;i++){
+                clearInterval(this.scheduleList[i].schedule);
+        }
+    };
+
     this.stopSchedule=function(sid){
         for(var i=0;i<this.scheduleList.length;i++){
             if(this.scheduleList[i].sid==sid){
